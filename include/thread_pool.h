@@ -12,6 +12,7 @@
 
 #define POOL_CLOSE 0
 #define POOL_OPEN 1
+
 //任务队列节点
 typedef void* (*TASK_ROUTINE)(void*);
 typedef void* TASK_ARG;

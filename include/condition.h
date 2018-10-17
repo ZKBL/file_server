@@ -16,5 +16,5 @@ int condition_wait(condition_t *condition);//等待一个环境变量
 int condition_signal(condition_t *condition);//发送信号给一个空闲线程
 int condition_broadcast(condition_t *condition);//发送信号给所有的空闲线程
 int condition_destroy(condition_t *condition);//释放互斥量与条件变量
-int condition_timewait(condition_t *condition);//在一定时间内等待环境变量
+int condition_timewait(condition_t *condition,const struct timespec*);//在一定时间内等待环境变量
 #endif

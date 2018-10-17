@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <errno.h>
 
 static	void *threadpool_thread(void	*pool);
 
@@ -102,11 +103,13 @@ int threadpool_destroy(thread_pool_t *pool){
 
 static	void* threadpool_thread(void *arg){
 
-	pthread_t				 pid;
+	int 					ret;
+	pthread_t 				pid;
+	int 					timeout;
+
 	pid=pthread_self();
 	printf("Thread %#lx starting\n",(size_t)pid);
 	thread_pool_t *pool=(thread_pool_t*)arg;
-	int timeout;
 	
 	for(;;){
 		timeout=0;
@@ -121,8 +124,37 @@ static	void* threadpool_thread(void *arg){
 			gettimeofday(&time_now_get,NULL);
 			time_now.tv_sec=time_now_get.tv_sec+5;
 			time_now.tv_nsec=0;
+			
+			ret=condition_timewait(&pool->ready,&time_now);
+			if(ret==ETIMEDOUT){
+				printf("Thread %#lx wait timeout\n",(size_t)pid);
+				timeout=1;
+				break;
+			}
 		}
 
-	
+		pool->thread_idle_size--;
+		//处理队列头的任务
+		if(pool->head){
+			task_t *task=pool->head;
+			pool->head=task->next;
+			condition_unlock(&pool->ready);
+			task->run(task->arg);
+			free(task);
+			task=NULL;
+			condition_lock(&pool->ready);
+		}
+
+		//destory thread pool
+		if((pool->shutdown==POOL_CLOSE)&&(pool->head==NULL)){
+			pool->thread_work_size--;
+			if(pool->thread_work_size==0){
+				condition_signal(&pool->ready);
+			}
+			condition_unlock(&pool->ready);
+			break;
+		}
 	}
+	printf("Thread %#lx exiting\n",(size_t)pid);
+	return 0;
 }
