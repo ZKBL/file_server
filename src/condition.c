@@ -11,7 +11,7 @@ int condition_init(condition_t *condition){
 	}
 	return 0;
 }
-int condition_destory(condition_t *condition){
+int condition_destroy(condition_t *condition){
 	if(pthread_mutex_destroy(&condition->thread_mutex)){
 		perror("mutex destroy");
 		return -1;

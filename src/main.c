@@ -18,12 +18,14 @@ int main(){
 	listen(listenfd,10);
 	thread_pool_t *pool;
 	pool=threadpool_init(10,10);
-	threadpool_add_task(pool,handle_accept,NULL);
+	threadpool_add_task(pool,handle_accept,(void*)&listenfd);
+	for(;;);
+	return 0;
 
 }
 
 void * handle_accept(void *arg){
-	int 					*fd=(int*)arg;
+ 	int 					*fd=(int*)arg;
 	int 					connectfd;
 	struct sockaddr_in 		addr;
 	socklen_t						len;
@@ -34,7 +36,9 @@ void * handle_accept(void *arg){
 	else {
 		printf("accept a new client :%s:%d\n",inet_ntoa(addr.sin_addr),addr.sin_port);
 	}
-
+	while(1){
+		printf("hello\n");
+		sleep(1);
+	}
 	return NULL;
-
 }
