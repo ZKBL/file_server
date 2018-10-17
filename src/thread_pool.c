@@ -5,8 +5,9 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <pthread.h>
 
-static	void *threadpool_thread(void	*pool);
+void *threadpool_thread(void	*pool);
 
 
 thread_pool_t *threadpool_init(int thread_max_size,int queue_max_size){
@@ -101,7 +102,7 @@ int threadpool_destroy(thread_pool_t *pool){
 	return 0;
 }
 
-static	void* threadpool_thread(void *arg){
+	void* threadpool_thread(void *arg){
 
 	int 					ret;
 	pthread_t 				pid;

@@ -1,5 +1,6 @@
 #include "thread_pool.h"
-#include "condition.c"
+#include "condition.h"
+#include "socket_init.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -12,8 +13,12 @@
 void * handle_accept(void* arg) ;
 
 int main(){
-	
-
+	int 		listenfd;
+	listenfd=socket_bind("127.0.0.1",20000);
+	listen(listenfd,10);
+	thread_pool_t *pool;
+	pool=threadpool_init(10,10);
+	threadpool_add_task(pool,handle_accept,NULL);
 
 }
 
