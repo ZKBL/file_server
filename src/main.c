@@ -36,9 +36,5 @@ void * handle_accept(void *arg){
 	else {
 		printf("accept a new client :%s:%d\n",inet_ntoa(addr.sin_addr),addr.sin_port);
 	}
-	while(1){
-		printf("hello\n");
-		sleep(1);
-	}
 	return NULL;
 }

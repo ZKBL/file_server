@@ -1,4 +1,4 @@
-#include "do_comment.h"
+#include "task_work.h"
 #include <unistd.h>
 #include<stdio.h>
 #include<dirent.h>
@@ -8,11 +8,12 @@
 #include<pwd.h>
 #include<grp.h>
 #include<time.h>
+#include<stdlib.h>
 
 
-void my_ll(const char *,const char* root);
+static void my_ll(const char *,const char* root);
 
-void *comment_cd(void *c){
+void *task_cd(void *c){
 	if(c==NULL){
 		if(chdir($HOME)){
 			return NULL;
@@ -24,12 +25,12 @@ void *comment_cd(void *c){
 	return NULL;
 }
 
-void *comment_ls(void *path){
+void *task_ls(void *path){
 	DIR 					*dp;
 	struct dirent 			*dirp;
 
-	if((dp=opendir(argv[1]))==NULL){
-		return ;
+	if((dp=opendir((char*)path))==NULL){
+		return strerror(2);
 	}
 	while((dirp=readdir(dp))!=NULL){
 		my_ll(dirp->d_name,(char *)path);
@@ -38,14 +39,27 @@ void *comment_ls(void *path){
 }
 
 
-void *comment_pwd(void *c){
+void *task_pwd(void *c){
+	char 				*buf;
+	buf=(char*)malloc(sizeof(char)*PATH_MAX);
+	memset(buf,0,PATH_MAX);
+	return getcwd(buf,PATH_MAX); 
+}
 
+void *task_mkdir(void *c){
+	umask(0);
+	mkdir((char *)c,0755);
+	return 0;
+}
 
-	return NULL; 
+void *task_rmdir(void *c){
+	
+	 rmdir((char *)c);
+	 return NULL;
 
 }
 
-void my_ll(const char *name,const char *root){
+static void my_ll(const char *name,const char *root){
 	char path[128];
 	struct stat buf;
 	stat(name,&buf);
@@ -53,8 +67,6 @@ void my_ll(const char *name,const char *root){
 	sprintf(path,"%s%s%s",root,"/",name);
 
 	printf("%3ld ",buf.st_nlink);
-	printf("%6s ",getpwuid(buf.st_uid)->pw_name);
-	printf("%6s ",getgrgid(buf.st_gid)->gr_name);
 	printf("%5ld ",buf.st_size);
 	printf("%10s",name);
 	printf("\n");

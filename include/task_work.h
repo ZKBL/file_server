@@ -14,6 +14,8 @@ typedef struct {
 void *comment_cd(void *);
 void *comment_ls(void *);
 void *comment_pwd(void *);
+void *comment_mkdir(void *);
+void *comment_rmdir(void *);
 void *comment_down(void *);
 void *comment_up(void *);
 void *comment_rm(void *);
