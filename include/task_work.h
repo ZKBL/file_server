@@ -11,13 +11,14 @@ typedef struct {
 	void *arg;
 }comment_t;
 
-void *comment_cd(void *);
-void *comment_ls(void *);
-void *comment_pwd(void *);
-void *comment_mkdir(void *);
-void *comment_rmdir(void *);
-void *comment_down(void *);
-void *comment_up(void *);
-void *comment_rm(void *);
+void *task_cd(void *);
+void *task_ls(void *);
+void *task_pwd(void *);
+void *task_mkdir(void *);
+void *task_rmdir(void *);
+void *task_down(void *);
+void *task_up(void *);
+void *task_rm(void *);
+
 
 #endif
