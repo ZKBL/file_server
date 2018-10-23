@@ -4,6 +4,8 @@
 #include <fcntl.h>
 #include <netinet/in.h>
 #include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
 
 int do_epoll(int fd){
 	int 					epollfd;
@@ -23,14 +25,17 @@ int do_epoll(int fd){
 int handle_event(int epollfd,struct epoll_event *events,int num,int listenfd){
 	int 					i;
 	int 					fd;
+	char 					*buf;
+	buf=(char*)malloc(MAXSIZE);
 	for(i=0;i<num;i++){
 		fd=events[i].data.fd;
 		if((fd==listenfd)&&(events[i].events&EPOLLIN))
 				handle_accept(epollfd,listenfd);
 		else if(events[i].events&EPOLLIN)
-			printf("input\n");
+			do_read(epollfd,fd,buf);
 		else if(events[i].events&EPOLLOUT)
-			printf("output\n");
+			do_write(epollfd,fd,buf);
+
 	}
 	return -1;
 }
@@ -95,6 +100,20 @@ void do_read(int epollfd,int listenfd,char *buf){
 	else {
 		printf("read buf is %s\n",buf);
 		modify_event(epollfd,listenfd,EPOLLOUT);
+	}
+
+}
+void do_write(int epollfd,int listenfd,char *buf){
+	int 					nwrite;
+	nwrite=write(listenfd,buf,MAXSIZE);
+	if(nwrite==-1){
+		perror("write error");
+		close(listenfd);
+		delete_event(epollfd,listenfd,EPOLLOUT);
+	}
+	else{
+		modify_event(epollfd,listenfd,EPOLLIN);
+		memset(buf,0,MAXSIZE);
 	}
 
 }
