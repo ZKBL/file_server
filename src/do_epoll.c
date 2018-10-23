@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <fcntl.h>
 #include <netinet/in.h>
+#include <unistd.h>
 
 int do_epoll(int fd){
 	int 					epollfd;
@@ -76,10 +77,24 @@ void delete_event(int epollfd,int listenfd,int state){
 	ev.events=state;
 	ev.data.fd=listenfd;
 	epoll_ctl(epollfd,EPOLL_CTL_DEL,listenfd,&ev);
-}
-void modify_event(int epollfd,int listenfd,int state){	
+} void modify_event(int epollfd,int listenfd,int state){	
 	struct epoll_event ev;
 	ev.events=state;
 	ev.data.fd=listenfd;
 	epoll_ctl(epollfd,EPOLL_CTL_MOD,listenfd,&ev);
+}
+
+void do_read(int epollfd,int listenfd,char *buf){
+	int 					nread;
+	nread=read(listenfd,buf,MAXSIZE);
+	if(nread==-1){
+		perror("read error");
+		close(listenfd);
+		delete_event(epollfd,listenfd,EPOLLIN);
+	}
+	else {
+		printf("read buf is %s\n",buf);
+		modify_event(epollfd,listenfd,EPOLLOUT);
+	}
+
 }

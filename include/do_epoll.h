@@ -5,6 +5,7 @@
 
 #define EPOLLEVENTS 10
 #define FDSIZE 		10
+#define MAXSIZE     1024
 
 //IO多路复用EPOLL
 int do_epoll(int fd);
@@ -16,4 +17,7 @@ int handle_accept(int epollfd,int listenfd);
 void add_event(int epollfd,int listenfd,int state);
 void delete_event(int epollfd,int listenfd,int state);
 void modify_event(int epollfd,int listenfd,int state);
+
+void do_read(int epollfd,int listenfd,char *buf);
+void do_write(int epollfd,int listenfd,char *buf);
 #endif
