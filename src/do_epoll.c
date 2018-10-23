@@ -101,7 +101,6 @@ void do_read(int epollfd,int listenfd,char *buf){
 		printf("read buf is %s\n",buf);
 		modify_event(epollfd,listenfd,EPOLLOUT);
 	}
-
 }
 void do_write(int epollfd,int listenfd,char *buf){
 	int 					nwrite;
