@@ -6,17 +6,34 @@
 
 int do_epoll(int fd){
 	int 					epollfd;
+	int 					ret;
 	struct epoll_event		events[EPOLLEVENTS];
 	epollfd=epoll_create(FDSIZE);
 	add_event(epollfd,fd,EPOLLIN);
 	for(;;){
-		epoll_wait(epollfd,events,EPOLLEVENTS,-1);	
-		handle_accept(epollfd,fd);
+		ret=epoll_wait(epollfd,events,EPOLLEVENTS,-1);	
+		handle_event(epollfd,events,ret,fd);
 	}
 
 
 	return epollfd;
 }
+
+int handle_event(int epollfd,struct epoll_event *events,int num,int listenfd){
+	int 					i;
+	int 					fd;
+	for(i=0;i<num;i++){
+		fd=events[i].data.fd;
+		if((fd==listenfd)&&(events[i].events&EPOLLIN))
+				handle_accept(epollfd,listenfd);
+		else if(events[i].events&EPOLLIN)
+			printf("input\n");
+		else if(events[i].events&EPOLLOUT)
+			printf("output\n");
+	}
+	return -1;
+}
+
 
 int handle_accept(int epollfd,int listenfd){
 	int 					new_fd;
