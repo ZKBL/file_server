@@ -8,7 +8,7 @@ typedef	enum{
 
 typedef struct {
 	comment_u comment;
-	void *arg;
+	char arg[1024];
 }comment_t;
 
 void *task_cd(void *);

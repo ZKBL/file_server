@@ -1,7 +1,7 @@
 vpath %.h ./include
 vpath %.c ./src
 CC=clang
-CFLAGS=-I./include -Wall -pthread
+CFLAGS=-I./include -Wall -pthread -g
 SRC=$(wildcard *.c ./src/*.c)
 OBJ=$(patsubst %.c,%.o,$(SRC))
 program:$(OBJ)

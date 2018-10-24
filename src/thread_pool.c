@@ -1,5 +1,6 @@
 #include "thread_pool.h"
 #include "condition.h"
+#include "do_epoll.h"
 
 #include <stdlib.h>
 #include <stdio.h>
@@ -70,7 +71,6 @@ int threadpool_add_task(thread_pool_t *pool,TASK_ROUTINE my_func,TASK_ARG arg){
 			perror("pthread create");
 			return -1;
 		}
-		printf("debugg\n");
 		pool->thread_work_size++;
 	}
 

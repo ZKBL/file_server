@@ -1,4 +1,7 @@
 #include "do_epoll.h"
+#include "task_work.h"
+#include "thread_pool.h"
+
 #include <sys/socket.h>
 #include <stdio.h>
 #include <fcntl.h>
@@ -12,27 +15,30 @@ int do_epoll(int fd){
 	int 					ret;
 	struct epoll_event		events[EPOLLEVENTS];
 	epollfd=epoll_create(FDSIZE);
-	add_event(epollfd,fd,EPOLLIN);
+	add_event(epollfd,fd,EPOLLIN|EPOLLONESHOT);
+
+	thread_pool_t *pool;
+	pool=threadpool_init(10,10);
+
 	for(;;){
 		ret=epoll_wait(epollfd,events,EPOLLEVENTS,-1);	
-		handle_event(epollfd,events,ret,fd);
+		handle_event(epollfd,events,ret,fd,pool);
 	}
-
-
-	return epollfd;
+	return 0;
 }
 
-int handle_event(int epollfd,struct epoll_event *events,int num,int listenfd){
+int handle_event(int epollfd,struct epoll_event *events,int num,int listenfd,thread_pool_t *pool){
 	int 					i;
 	int 					fd;
 	char 					*buf;
+	comment_t 				comment;
 	buf=(char*)malloc(MAXSIZE);
 	for(i=0;i<num;i++){
 		fd=events[i].data.fd;
 		if((fd==listenfd)&&(events[i].events&EPOLLIN))
-				handle_accept(epollfd,listenfd);
+			handle_accept(epollfd,listenfd);
 		else if(events[i].events&EPOLLIN)
-			do_read(epollfd,fd,buf);
+			do_read(epollfd,fd,&comment,pool);
 		else if(events[i].events&EPOLLOUT)
 			do_write(epollfd,fd,buf);
 
@@ -45,7 +51,7 @@ int handle_accept(int epollfd,int listenfd){
 	int 					new_fd;
 	struct sockaddr_in		clientaddr;
 	socklen_t 				len;
-	
+
 	new_fd=accept(listenfd,(struct sockaddr *)&clientaddr,&len);
 	if(new_fd==-1){
 		perror("accept error");
@@ -63,12 +69,11 @@ int handle_accept(int epollfd,int listenfd){
 				perror ("F_SETFL error");
 				return -3;
 			}
-		
+
 		}
-		
+
 	}
 	add_event(epollfd,new_fd,EPOLLIN);
-	printf("hello,world\n");
 	return new_fd;
 }
 void add_event(int epollfd,int listenfd,int state){	
@@ -89,21 +94,34 @@ void delete_event(int epollfd,int listenfd,int state){
 	epoll_ctl(epollfd,EPOLL_CTL_MOD,listenfd,&ev);
 }
 
-void do_read(int epollfd,int listenfd,char *buf){
+void do_read(int epollfd,int listenfd,comment_t *comment,thread_pool_t *pool){
 	int 					nread;
+	char 					buf[MAXSIZE];
 	nread=read(listenfd,buf,MAXSIZE);
 	if(nread==-1){
 		perror("read error");
 		close(listenfd);
 		delete_event(epollfd,listenfd,EPOLLIN);
 	}
+	else if(nread==0){
+		printf("client close\n");
+		close(listenfd);
+		delete_event(epollfd,listenfd,EPOLLIN);
+	}
 	else {
 		printf("read buf is %s\n",buf);
 		modify_event(epollfd,listenfd,EPOLLOUT);
+		memcpy(comment,buf,sizeof(comment_t));
+		printf("comment.arg=%s\n",(char*)(comment->arg));
+		threadpool_add_task(pool,task_ls,comment->arg);
+		delete_event(epollfd,listenfd,EPOLLOUT);
+		//handle_comment(buf,pool);
 	}
+
 }
 void do_write(int epollfd,int listenfd,char *buf){
 	int 					nwrite;
+	strcpy(buf,"hello");
 	nwrite=write(listenfd,buf,MAXSIZE);
 	if(nwrite==-1){
 		perror("write error");
@@ -116,3 +134,19 @@ void do_write(int epollfd,int listenfd,char *buf){
 	}
 
 }
+void handle_comment(char *buf,thread_pool_t *pool){
+	
+	comment_t 					commen;
+	memcpy(&commen,buf,sizeof(comment_t));
+	int b=commen.comment;
+	switch(b){
+		
+		case LS:
+		threadpool_add_task(pool,task_ls,commen.arg);
+		case CD:
+			threadpool_add_task(pool,task_cd,commen.arg);
+		case PWD:
+			threadpool_add_task(pool,task_pwd,commen.arg);
+	}
+}
+
