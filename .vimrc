@@ -1,5 +1,3 @@
-" The default vimrc file.
-"
 " Maintainer:	Bram Moolenaar <Bram@vim.org>
 " Last change:	2017 Jun 13
 "
@@ -20,6 +18,9 @@ call vundle#begin()
 " let Vundle manage Vundle, required
 Plugin 'VundleVim/Vundle.vim'
 Plugin 'Valloric/YouCompleteMe'
+Plugin 'lilydjwg/fcitx.vim'
+Plugin 'aceofall/gtags.vim'
+Plugin 'ctrlpvim/ctrlp.vim'
 
 " The following are examples of different formats supported.
 " Keep Plugin commands between vundle#begin/end.
@@ -184,6 +185,7 @@ endif
  " Python Semantic Completion
  let g:ycm_python_binary_path = '/usr/bin/python3'
  " C family Completion Path
+"  let g:ycm_global_ycm_extra_conf='~/.vim/bundle/YouCompleteMe/third_party/ycmd/.ycm_extra_conf.py'
  let g:ycm_global_ycm_extra_conf='~/.ycm_extra_conf.py'
  " 跳转快捷键
  nnoremap <c-k> :YcmCompleter GoToDeclaration<CR>|
@@ -212,10 +214,119 @@ endif
  " 停止显示补全列表(防止列表影响视野), 可以按<C-Space>重新弹出
  "let g:ycm_key_list_stop_completion = ['<C-y>']
 
+"========================================================
+" add header comments for .h .c .hpp .cpp .mk .sh new file
+" auto call SetTitle func
+autocmd BufNewFile *.[ch],*.cc,*.hpp,*.cpp,Makefile,*.mk,*.sh,*.py exec ":call SetTitle()"
 
+" add comment for cpp
+func SetComment_ch()
+	call setline(1,"/*================================================================")
+	call append(line("."),   "*   Copyright (C) ".strftime("%Y")." * Ltd. All rights reserved.")
+	call append(line(".")+1, "*   ")
+	call append(line(".")+2, "*   File name   : ".expand("%:t"))
+	call append(line(".")+3, "*   Author      : looming")
+	call append(line(".")+4, "*   Created date: ".strftime("%F %T"))
+	call append(line(".")+5, "*   Description : ")
+	call append(line(".")+6, "*		Email				: flm919841090@gmail.com")
+	call append(line(".")+7, "*")
+	call append(line(".")+8, "*===============================================================*/")
+	call append(line(".")+9, "")
+	call append(line(".")+10, "")
+endfunc
+
+" add comment for shell,Makefile
+func SetComment_sh()
+	call setline(3, "#================================================================")
+	call setline(4, "#   Copyright (C) ".strftime("%Y")." * Ltd. All rights reserved.")
+	call setline(5, "#   ")
+	call setline(6, "#   File name   : ".expand("%:t"))
+	call setline(7, "#   Author      : looming")
+	call setline(8, "#   Created date: ".strftime("%F %T"))
+	call setline(9, "#   Description : ")
+	call setline(10, "#	 Email			 :flm919841090@gmail.com")
+	call setline(11, "#")
+	call setline(12, "#================================================================")
+	call setline(12, "")
+	call setline(13, "")
+endfunc
+
+" SetTitle func, add comment
+func SetTitle()
+	if &filetype == 'make'
+		call setline(1,"")
+		call setline(2,"")
+		call SetComment_sh()
+
+	elseif &filetype == 'sh'
+		call setline(1,"#! /bin/bash")
+		call setline(2,"")
+		call SetComment_sh()
+
+	elseif &filetype == 'python'
+		call setline(1,"#! /usr/bin/env python")
+		call setline(2,"# coding=utf-8")
+		call setline(3,"")
+		call SetComment_sh()
+
+	else
+		call SetComment_ch()
+		if expand("%:e") == 'hpp'
+			call append(line(".")+10, "#ifndef _".toupper(expand("%:t:r"))."_H")
+			call append(line(".")+11, "#define _".toupper(expand("%:t:r"))."_H")
+			call append(line(".")+12, "#ifdef __cplusplus")
+			call append(line(".")+13, "extern \"C\"")
+			call append(line(".")+14, "{")
+			call append(line(".")+15, "#endif")
+			call append(line(".")+16, "")
+			call append(line(".")+17, "#ifdef __cplusplus")
+			call append(line(".")+18, "}")
+			call append(line(".")+19, "#endif")
+			call append(line(".")+20, "#endif //".toupper(expand("%:t:r"))."_H")
+		elseif expand("%:e") == 'cpp'
+			call append(line(".")+10,"#include <iostream>")
+			call append(line(".")+11, "using std::cout;")
+			call append(line(".")+12, "using std::cin;")
+			call append(line(".")+13, "using std::endl;")
+		elseif expand("%:e") == 'cc'
+			call append(line(".")+10,"#include <iostream>")
+			call append(line(".")+11, "using std::cout;")
+			call append(line(".")+12, "using std::cin;")
+			call append(line(".")+13, "using std::endl;")
+			call append(line(".")+14, "")
+			call append(line(".")+15, "")
+			call append(line(".")+16, "int main(){")
+			call append(line(".")+17, "}")
+      
+
+		endif
+
+	endif
+endfunc
+
+
+"========================================================
 
 
 set nu
 set rtp+=/usr/lib/python3.7/site-packages/powerline/bindings/vim
 set laststatus=2
 set t_Co=256
+set showtabline=2
+set autoindent
+set cindent
+set cursorline
+set tabstop=2
+set softtabstop=2
+set shiftwidth=2
+set expandtab
+set fileencodings=utf-8,gbk,ucs-bom,gb18030,gb2312,cp936
+set termencoding=utf-8
+set encoding=utf-8
+
+set cscopetag
+set cscopeprg='gtags-cscope'
+let GtagsCscope_Auto_Load =1
+let CtagsCscope_Auto_Map=1
+let GtagsCscope_quiet=1
+
